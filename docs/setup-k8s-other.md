@@ -56,8 +56,63 @@ sudo apt-get install -y kubectl
 
 コントロールプレーンの`~/.kube/config`をコピーし、コピー先の`~/.kube/config`にペーストする
 
+---
+
+## Node の停止/復旧
+
+> これが正しいのかは分かりません
+
+ノード上で実行している全ての Pod を退避させる
+
+```bash
+kubectl drain <node name> --ignore-daemonsets --force --delete-emptydir-data
+```
+
+Pod の状態を確認
+
+```bash
+kubectl get pods -A -o wide
+```
+
+ノードへの新しいポッドのスケジューリングを再開
+
+```bash
+kubectl uncordon <node name>
+```
+
+---
+
+## メトリクスサーバーのインストール
+
+メトリクスサーバーをデプロイ
+
+```bash
+curl -O https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+Deployment の args に追加（最善の方法ではありません）
+
+```bash
+spec:
+      containers:
+      - args:
+        - --cert-dir=/tmp
+        - --secure-port=4443
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        - --kubelet-insecure-tls   <- 追加
+```
+
+```bash
+kubectl appply -f components.yaml
+```
+
 ## 参考
 
 - [kubectl のインストールおよびセットアップ](https://kubernetes.io/ja/docs/tasks/tools/install-kubectl/)
 
 - [Controlling your cluster from machines other than the control-plane node](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#optional-controlling-your-cluster-from-machines-other-than-the-control-plane-node)
+
+- [Safely Drain a Node](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
+- [metrics-server error because it doesn't contain any IP SANs](https://github.com/kubernetes-sigs/metrics-server/issues/196)
