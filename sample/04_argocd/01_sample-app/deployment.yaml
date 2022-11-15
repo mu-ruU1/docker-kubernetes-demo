@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: echo-pods-argo
+  name: echo-pods-argo2
 spec:
   strategy:
-    type: RollingUpdate
-  replicas: 7
+    type: Recreate
+  replicas: 3
   selector:
     matchLabels:
-      app: echo-pods-argo
+      app: echo-pods-argo2
   template:
     metadata:
       labels:
-        app: echo-pods-argo
+        app: echo-pods-argo2
     spec:
       containers:
         - name: echo-pods
